@@ -55,18 +55,21 @@ handle_call({get, Path, QArgs}, _, State) ->
   {reply, Result, State};
 
 %% @private
+handle_call({get, Path, QArgs, Options}, _, State) ->
+  Result = conserl_util:get(State, Path, QArgs, Options),
+  {reply, Result, State};
+
+%% @private
 handle_call(Request, From, State) ->
-    io:format("Unknown call ~p from ~p", [Request, From]),
-    {noreply, State}.
-
-
+  io:format("Unknown call ~p from ~p", [Request, From]),
+  {noreply, State}.
 
 %% @private
 handle_cast(Request, State) ->
-    io:format("Unknown cast ~p", [Request]),
-    {noreply, State}.
+  io:format("Unknown cast ~p", [Request]),
+  {noreply, State}.
 
 %% @private
 handle_info(Info, State) ->
-    io:format("Unknown info ~p", [Info]),
-    {noreply, State}.
+  io:format("Unknown info ~p", [Info]),
+  {noreply, State}.

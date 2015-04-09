@@ -25,6 +25,7 @@ get(Host, Port, Path, QArgs) ->
 
 build_full_path(Path, []) ->
   string:join(["/", ?API_VERSION, build_path(Path)], "");
+
 build_full_path(Path, QArgs) ->
   string:join(["/", ?API_VERSION, build_path(Path), "?", build_query(QArgs)], "").
 
@@ -44,11 +45,11 @@ build_query(Args) ->
 
 build_query([{Key,Value}|Args], Parts) when is_atom(Key) =:= true ->
   build_query(Args, lists:merge(Parts, [string:join([http_uri:encode(atom_to_list(Key)),
-                                                     http_uri:encode(Value)], "=")]));
+                                                     encode_query_value(Value)], "=")]));
 
 build_query([{Key,Value}|Args], Parts) ->
   build_query(Args, lists:merge(Parts, [string:join([http_uri:encode(Key),
-                                                     http_uri:encode(Value)], "=")]));
+                                                     encode_query_value(Value)], "=")]));
 
 build_query([Key|Args], Parts) when is_atom(Key) =:= true ->
   build_query(Args, lists:merge(Parts, [http_uri:encode(atom_to_list(Key))]));
@@ -58,3 +59,12 @@ build_query([Key|Args], Parts) ->
 
 build_query([], Parts) ->
   string:join(Parts, "&").
+
+encode_query_value(Value) when is_atom(Value) =:= true ->
+  http_uri:encode(atom_to_list(Value));
+
+encode_query_value(Value) when is_list(Value) =:= true ->
+  http_uri:encode(Value);
+
+encode_query_value(Value) when is_integer(Value) =:= true ->
+  integer_to_list(Value).
