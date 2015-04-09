@@ -1,0 +1,16 @@
+{application, conserl, [
+  {description, "Consul client"},
+  {vsn, "0.1.0"},
+  {registered, []},
+  {applications, [
+    kernel,
+    stdlib,
+    shotgun
+  ]},
+  {mod, {conserl, []}},
+  {env, [
+    {hostname, "127.0.0.1"},
+    {port, 8500},
+    {acl, undefined}
+  ]}
+]}.
