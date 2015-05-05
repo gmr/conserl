@@ -7,18 +7,20 @@
 -export([test_build_path/0,
          test_build_query/0,
          test_build_full_path/0,
-         test_build_full_path_with_qargs/0]).
+         test_build_full_path_with_qargs/0,
+         test_build_url/0]).
 
 awerl_test_() ->
   {inparallel, [
     {"test_build_path", ?MODULE, test_build_path},
     {"test_build_query", ?MODULE, test_build_query},
     {"test_build_full_path", ?MODULE, test_build_full_path},
-    {"test_build_full_path_with_qargs", ?MODULE, test_build_full_path_with_qargs}
+    {"test_build_full_path_with_qargs", ?MODULE, test_build_full_path_with_qargs},
+    {"test_build_url", ?MODULE, test_build_url}
   ]}.
 
 split_query(Query) ->
-    case re:split(Query, "&", [{return, list}]) of
+    case re:split(string:strip(Query, left, $?), "&", [{return, list}]) of
         [""]    -> [];
         QParams -> [split_uri(Param, "=", Param) || Param <- QParams]
     end.
@@ -55,3 +57,22 @@ test_build_full_path_with_qargs() ->
   ?assert(lists:member("recurse", QArgs)),
   ?assert(lists:member("consistent", QArgs)),
   ?assertEqual("foo", proplists:get_value("dc", QArgs)).
+
+test_build_url() ->
+  URL = conserl_util:build_url("localhost", 8500,
+                               ["kv", "keyN@me"],
+                               [{"dc", "foo"}, "recurse", "consistent"]),
+  case http_uri:parse(URL) of
+    {ok, {Scheme, _UserInfo, Host, Port, Path, Query}} ->
+      ?assertEqual(http, Scheme),
+      ?assertEqual("localhost", Host),
+      ?assertEqual(8500, Port),
+      ?assertEqual("/v1/kv/keyN%40me", Path),
+      QArgs = split_query(Query),
+      io:format("QArgs: ~p~n", [QArgs]),
+      ?assert(lists:member("recurse", QArgs)),
+      ?assert(lists:member("consistent", QArgs)),
+      ?assertEqual("foo", proplists:get_value("dc", QArgs));
+    {error, Reason} -> {error, Reason}
+  end.
+

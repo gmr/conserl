@@ -5,11 +5,12 @@
   {applications, [
     kernel,
     stdlib,
-    shotgun
+    inets,
+    lager
   ]},
   {mod, {conserl, []}},
   {env, [
-    {hostname, "127.0.0.1"},
+    {hostname, "consul1.int.csh"},
     {port, 8500},
     {acl, undefined}
   ]}

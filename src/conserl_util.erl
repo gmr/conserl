@@ -4,6 +4,7 @@
 
 %% API
 -export([get/3,
+         build_url/4,
          build_path/1,
          build_query/1,
          build_full_path/2]).
@@ -17,11 +18,19 @@ get(State, Path, QArgs) ->
   get(State#state.host, State#state.port, Path, QArgs).
 
 get(Host, Port, Path, QArgs) ->
-  {ok, Conn} = shotgun:open(Host, Port),
-  FullPath = build_full_path(Path, QArgs),
-  {ok, Response} = shotgun:get(Conn, FullPath),
-  shotgun:close(Conn),
-  Response.
+  URL = build_url(Host, Port, Path, QArgs),
+  case httpc:request(URL) of
+    {ok, {{_Vsn, 200, _Reason}, _Headers, Body}} ->
+      Decoded = jsx:decode(list_to_binary(Body)),
+      lager:info("Body: ~p", [Decoded]),
+      {ok, Decoded};
+    {error, Reason} ->
+      lager:error("Error querying Consul: ~p", [Reason]),
+      {error, Reason}
+  end.
+
+build_url(Host, Port, Path, QArgs) ->
+  string:join(["http://", Host, ":", integer_to_list(Port), build_full_path(Path, QArgs)], "").
 
 build_full_path(Path, []) ->
   string:join(["/", ?API_VERSION, build_path(Path)], "");
@@ -58,7 +67,7 @@ build_query([Key|Args], Parts) ->
   build_query(Args, lists:merge(Parts, [http_uri:encode(Key)]));
 
 build_query([], Parts) ->
-  string:join(Parts, "&").
+  string:join(lists:sort(Parts), "&").
 
 encode_query_value(Value) when is_atom(Value) =:= true ->
   http_uri:encode(atom_to_list(Value));

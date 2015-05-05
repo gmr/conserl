@@ -35,7 +35,7 @@ eunit:
 	@$(REBAR) skip_deps=true eunit
 
 console:
-	@( erl -pa ebin deps/*/ebin -config app.config -s conserl)
+	@( erl +W w -pa ebin deps/*/ebin -config app.config -sync log all -s conserl)
 
 test: all eunit
 
