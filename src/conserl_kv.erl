@@ -9,6 +9,7 @@
          watch/1, watch/2, watch/3]).
 
 %% @spec get(Key) -> Result
+%% where
 %%       Prefix    = list()
 %%       Result = {ok, map()}|{error, Reason}
 %% @doc Return ``Result'' value for the given key.
@@ -18,10 +19,12 @@ get(Key) ->
   get(Key, []).
 
 %% @spec get(Key, QArgs) -> Result
-%%       Prefix    = list()
+%% where
+%%       Key    = list()
 %%       QArgs  = list()
 %%       Result = {ok, map()}|{error, Reason}
-%% @doc Return ``Result`` for the given key and specified query args such as ``dc''.
+%% @doc Return ``Result'' for the given ``Key'' and specified query args (``QArgs'')
+%% such as ``@{"dc", "production"@}''.
 %% @end
 %%
 get(Key, QArgs) ->
@@ -33,6 +36,7 @@ get(Key, QArgs) ->
   end.
 
 %% @spec get_all(Prefix) -> list()
+%% where
 %%       Prefix    = list()
 %%       Result = {ok, list()}|{error, Reason}
 %% @doc Return the values for all keys with the supplied ``Prefix''.
@@ -42,10 +46,11 @@ get_all(Prefix) ->
   get_all(Prefix, []).
 
 %% @spec get_all(Prefix, QArgs) -> list()
+%% where
 %%       Prefix    = list()
 %%       Result = {ok, list()}|{error, Reason}
 %% @doc Return the values for all keys with the supplied ``Prefix'' passing in
-%% aditional query arguments, such as ``dc''.
+%% aditional query arguments (``QArgs''), %% such as ``@{"dc", "production"@}''.
 %% @end
 %%
 get_all(Prefix, QArgs) ->
@@ -57,6 +62,7 @@ get_all(Prefix, QArgs) ->
   end.
 
 %% @spec keys(Prefix) -> Result
+%% where
 %%       Prefix = list()
 %%       Result = {ok, list()}|{error, Reason}
 %% @doc List all keys under the given ``Prefix''.
@@ -66,11 +72,13 @@ keys(Prefix) ->
   keys(Prefix, []).
 
 %% @spec keys(Prefix, QArgs) -> Result
+%% where
 %%       Prefix = list()
 %%       QArgs  = list()
 %%       Result = {ok, list()}|{error, Reason}
 %% @doc List keys for the prefix. To add a separator for limiting the keys
-%% returned, pass ``@{separator, Value@}'' in the QArgs.
+%% returned, pass ``@{separator, Value@}'' in the ``QArgs"" %% such
+%% as ``@{"dc", "production"@}''.
 %% @end
 %%
 keys(Prefix, QArgs) ->
@@ -82,6 +90,7 @@ keys(Prefix, QArgs) ->
 
 
 %% @spec watch(Key) -> Result
+%% where
 %%       Key    = list()
 %%       Result = {ok, map()}|{error, Reason}
 %% @doc Blocking watch on the specified ``Key'', returning ``Result''.
@@ -103,6 +112,7 @@ watch(Key) ->
   end.
 
 %% @spec watch(Key, Fun) -> {ok, ref()}
+%% where
 %%       Key    = list()
 %%       Result = {ref(), map()}|{ref(), {error, Reason}}
 %% @doc Asynchonous watch on the specified ``Key'', calling the callback ``Fun''
@@ -113,12 +123,13 @@ watch(Key, Fun) ->
   watch(Key, [], Fun).
 
 %% @spec watch(Key, QArgs, Fun) -> {ok, ref()}
+%% where
 %%       Key    = list()
 %%       QArgs  = list()
 %%       Result = {ref(), map()}|{ref(), {error, Reason}}
 %% @doc Asynchonous watch on the specified key, calling the callback 'Fun'
 %% with the results of the call as Result, passing in aditional query
-%% arguments, such as ``dc''.
+%% arguments (``QArgs''), such as ``@{"dc", "production"@}''.
 %% @end
 %%
 watch(Key, QArgs, Fun) ->
@@ -160,6 +171,7 @@ build_get_response([H|T], Acc) ->
 
 %% @private
 %% @spec build_key_map(Payload) -> map()
+%% where
 %%       Payload   = list()
 %% @doc Build the response to a kv GET as a map, base64 decoding the value
 %% @end
