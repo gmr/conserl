@@ -50,7 +50,7 @@ get_all(Prefix) ->
 %%       Prefix    = list()
 %%       Result = {ok, list()}|{error, Reason}
 %% @doc Return the values for all keys with the supplied ``Prefix'' passing in
-%% aditional query arguments (``QArgs''), %% such as ``@{"dc", "production"@}''.
+%% aditional query arguments (``QArgs''), such as ``@{"dc", "production"@}''.
 %% @end
 %%
 get_all(Prefix, QArgs) ->
