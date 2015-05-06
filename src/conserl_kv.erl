@@ -1,5 +1,4 @@
 %%% @author Gavin M. Roy <gavinmroy@gmail.com>
-%%% @copyright 2015, Gavin M. Roy
 %%% @doc Consul KV API endpoints
 
 -module(conserl_kv).
@@ -9,15 +8,22 @@
          keys/1, keys/2,
          watch/1, watch/2, watch/3]).
 
-%% @spec get(Key) -> map()
+%% @spec get(Key) -> Result
 %%       Prefix    = list()
-%%       Result = {ok, list()}|{error, Reason}
-%% @doc Return a map() value for the given key.
+%%       Result = {ok, map()}|{error, Reason}
+%% @doc Return ``Result'' value for the given key.
 %% @end
 %%
 get(Key) ->
   get(Key, []).
 
+%% @spec get(Key, QArgs) -> Result
+%%       Prefix    = list()
+%%       QArgs  = list()
+%%       Result = {ok, map()}|{error, Reason}
+%% @doc Return ``Result`` for the given key and specified query args such as ``dc''.
+%% @end
+%%
 get(Key, QArgs) ->
   case gen_server:call(conserl, {get, [kv, Key], QArgs}) of
     {ok, Payload} ->
@@ -29,7 +35,7 @@ get(Key, QArgs) ->
 %% @spec get_all(Prefix) -> list()
 %%       Prefix    = list()
 %%       Result = {ok, list()}|{error, Reason}
-%% @doc Return the values for all keys with the supplied prefix.
+%% @doc Return the values for all keys with the supplied ``Prefix''.
 %% @end
 %%
 get_all(Prefix) ->
@@ -38,23 +44,22 @@ get_all(Prefix) ->
 %% @spec get_all(Prefix, QArgs) -> list()
 %%       Prefix    = list()
 %%       Result = {ok, list()}|{error, Reason}
-%% @doc Return the values for all keys with the supplied prefix passing in
-%% aditional query arguments, such as 'dc'.
+%% @doc Return the values for all keys with the supplied ``Prefix'' passing in
+%% aditional query arguments, such as ``dc''.
 %% @end
 %%
 get_all(Prefix, QArgs) ->
   Args = lists:append(QArgs, [recurse]),
-  lager:info("Args: ~p", [Args]),
   case gen_server:call(conserl, {get, [kv, Prefix], Args}) of
-    {ok, Payload} ->
-      {ok, build_get_response(Payload)};
+    {ok, Response} ->
+      {ok, build_get_response(Response)};
     {error, Reason} -> {error, Reason}
   end.
 
 %% @spec keys(Prefix) -> Result
 %%       Prefix = list()
 %%       Result = {ok, list()}|{error, Reason}
-%% @doc List all keys under the given prefix
+%% @doc List all keys under the given ``Prefix''.
 %% @end
 %%
 keys(Prefix) ->
@@ -65,7 +70,7 @@ keys(Prefix) ->
 %%       QArgs  = list()
 %%       Result = {ok, list()}|{error, Reason}
 %% @doc List keys for the prefix. To add a separator for limiting the keys
-%% returned, pass '{separator, Value}' in the QArgs.
+%% returned, pass ``@{separator, Value@}'' in the QArgs.
 %% @end
 %%
 keys(Prefix, QArgs) ->
@@ -77,9 +82,9 @@ keys(Prefix, QArgs) ->
 
 
 %% @spec watch(Key) -> Result
-%%       Prefix    = list()
+%%       Key    = list()
 %%       Result = {ok, map()}|{error, Reason}
-%% @doc Blocking watch on the specified key
+%% @doc Blocking watch on the specified ``Key'', returning ``Result''.
 %% @end
 %%
 watch(Key) ->
@@ -98,30 +103,30 @@ watch(Key) ->
   end.
 
 %% @spec watch(Key, Fun) -> {ok, ref()}
-%%       Prefix = list()
+%%       Key    = list()
 %%       Result = {ref(), map()}|{ref(), {error, Reason}}
-%% @doc Asynchonous watch on the specified key, calling the callback 'Fun'
-%% with the results of the call as Result.
+%% @doc Asynchonous watch on the specified ``Key'', calling the callback ``Fun''
+%% with the ``Result''.
 %% @end
 %%
 watch(Key, Fun) ->
   watch(Key, [], Fun).
 
 %% @spec watch(Key, QArgs, Fun) -> {ok, ref()}
-%%       Prefix = list()
+%%       Key    = list()
 %%       QArgs  = list()
 %%       Result = {ref(), map()}|{ref(), {error, Reason}}
 %% @doc Asynchonous watch on the specified key, calling the callback 'Fun'
 %% with the results of the call as Result, passing in aditional query
-%% arguments, such as 'dc'.
+%% arguments, such as ``dc''.
 %% @end
 %%
 watch(Key, QArgs, Fun) ->
   Reply = fun(Response) ->
     case Response of
-      {ok, Payload} ->
+      {Ref, Payload} ->
         [Result] = build_get_response(Payload),
-        Fun({ok, Result});
+        Fun({Ref, Result});
       {error, Reason} -> Fun({error, Reason})
     end
   end,

@@ -30,17 +30,12 @@ http_get(Host, Port, Path, QArgs, {receiver, Fun}) ->
     end
   end),
   URL = build_url(Host, Port, Path, QArgs),
-  lager:debug("http_get/5 with callback function: ~s", [URL]),
   httpc:request(get, {URL, []}, [], [{sync, false},
                 {receiver, Receiver}]);
 
 http_get(Host, Port, Path, QArgs, Options) ->
   URL = build_url(Host, Port, Path, QArgs),
-  Response = httpc:request(get, {URL, []}, Options, []),
-  case process_response(Response) of
-    {ok, {error, Response}} -> {error, Response};
-    Response -> Response
-  end.
+  process_response(httpc:request(get, {URL, []}, Options, [])).
 
 process_response({Ref, {{_Vsn, 200, _Reason}, Headers, Body}}) ->
   ContentType = proplists:get_value("content-type", Headers),
@@ -48,6 +43,7 @@ process_response({Ref, {{_Vsn, 200, _Reason}, Headers, Body}}) ->
     "application/json" -> {Ref, json_decode(Body)};
     _ -> {Ref, Body}
   end;
+process_response({ok, {{_Vsn, _, Reason}, _Headers, _Body}}) -> {error, Reason};
 process_response({Ref, {{_Vsn, _, Reason}, _Headers, _Body}}) -> {Ref, {error, Reason}};
 process_response({error, Reason}) -> {error, Reason}.
 
