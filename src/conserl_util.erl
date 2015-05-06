@@ -3,14 +3,30 @@
 -module(conserl_util).
 
 %% API
--export([get/3,
-         get/4,
+-export([delete/3,
+         get/3, get/4,
+         put/4,
          build_url/4,
          build_path/1,
          build_query/1,
          build_full_path/2]).
 
 -include("conserl.hrl").
+
+-define(MIME_FORM, "application/x-www-form-urlencoded; charset=UTF-8").
+
+delete(State, Path, QArgs) when State#state.acl =/= undefined ->
+  delete(State, Path, lists:merge(QArgs, [{acl, State#state.acl}]));
+delete(#state{host=Host, port=Port}, Path, QArgs) ->
+  URL = build_url(Host, Port, Path, QArgs),
+  lager:info("URL: ~s", [URL]),
+  case httpc:request(delete, {URL, []}, [], []) of
+    {ok, {{_Vsn, 200, _Reason}, _Headers, Body}} -> Body;
+    {ok, {{_Vsn, StatusCode, Reason}, _Headers, _Body}} ->
+      lager:info("Status Code: ~p", [StatusCode]),
+      {error, Reason};
+    {error, Reason} -> {error, Reason}
+  end.
 
 get(#state{host=Host, port=Port, acl=ACL}, Path, QArgs) when ACL =/= undefined ->
   http_get(Host, Port, Path, lists:merge(QArgs, [{acl, ACL}]), []);
@@ -22,6 +38,16 @@ get(State, Path, QArgs, {timeout, Timeout}) ->
 
 get(State, Path, QArgs, Fun) ->
   http_get(State#state.host, State#state.port, Path, QArgs, {receiver, Fun}).
+
+put(State, Path, Value, QArgs) when State#state.acl =/= undefined ->
+  put(State, Path, Value, lists:merge(QArgs, [{acl, State#state.acl}]));
+put(#state{host=Host, port=Port}, Path, Value, QArgs) ->
+  URL = build_url(Host, Port, Path, QArgs),
+  case httpc:request(put, {URL, [],?MIME_FORM, Value}, [], []) of
+    {ok, {{_Vsn, 200, _Reason}, _Headers, Body}} -> Body;
+    {ok, {{_Vsn, _, Reason}, _Headers, _Body}} -> {error, Reason};
+    {error, Reason} -> {error, Reason}
+  end.
 
 http_get(Host, Port, Path, QArgs, {receiver, Fun}) ->
   Receiver = spawn(fun() ->

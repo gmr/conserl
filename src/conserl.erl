@@ -50,6 +50,11 @@ code_change(_, _, State) ->
     {ok, State}.
 
 %% @private
+handle_call({delete, Path, QArgs}, _, State) ->
+  Result = conserl_util:delete(State, Path, QArgs),
+  {reply, Result, State};
+
+%% @private
 handle_call({get, Path, QArgs}, _, State) ->
   Result = conserl_util:get(State, Path, QArgs),
   {reply, Result, State};
@@ -57,6 +62,11 @@ handle_call({get, Path, QArgs}, _, State) ->
 %% @private
 handle_call({get, Path, QArgs, Options}, _, State) ->
   Result = conserl_util:get(State, Path, QArgs, Options),
+  {reply, Result, State};
+
+%% @private
+handle_call({put, Path, Value, QArgs}, _, State) ->
+  Result = conserl_util:put(State, Path, Value, QArgs),
   {reply, Result, State};
 
 %% @private

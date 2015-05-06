@@ -3,10 +3,49 @@
 
 -module(conserl_kv).
 
--export([get/1, get/2,
+-export([delete/1, delete/2, delete/3,
+         get/1, get/2,
          get_all/1, get_all/2,
          keys/1, keys/2,
+         put/2, put/3, put/4,
          watch/1, watch/2, watch/3]).
+
+%% @spec delete(Key) -> Result
+%% where
+%%       Key    = list()
+%%       Result = ok|{error, Reason}
+%% @doc Delete the give ``Key'' returning ``Result''.
+%% @end
+%%
+delete(Key) ->
+  delete(Key, false, none).
+
+%% @spec delete(Prefix, Recurse) -> Result
+%% where
+%%       Prefix  = list()
+%%       Recurse = boolean()
+%%       Result  = ok|{error, Reason}
+%% @doc Recursively delete all keys matching ``Prefix'' returning ``Result''.
+%% @end
+%%
+delete(Prefix, Recurse) ->
+  delete(Prefix, Recurse, none).
+
+%% @spec delete(Key, Recurse, CAS) -> Result
+%% where
+%%       Key     = list()
+%%       Recurse = boolean()
+%%       CAS     = boolean()
+%%       Result  = ok|{error, Reason}
+%% @doc Delete the given ``Key'' using Check-and-Set operations specifying the
+%% ``ModifyIndex'' using the ``CAS'' argument, returning ``Result''.
+%% @end
+%%
+delete(Key, Recurse, CAS) ->
+  case gen_server:call(conserl, {delete, [kv, Key], delete_args(Recurse, CAS)}) of
+    {error, Reason} -> {error, Reason};
+    _ -> ok
+  end.
 
 %% @spec get(Key) -> Result
 %% where
@@ -88,6 +127,50 @@ keys(Prefix, QArgs) ->
     {error, Reason} -> {error, Reason}
   end.
 
+%% @spec put(Key, Value) -> Result
+%% where
+%%       Key    = list()
+%%       Value  = list()
+%%       Result = boolean()|{error, Reason}
+%% @doc Store ``Value'' for ``Key'' returning ``Result''.
+%% @end
+%%
+put(Key, Value) ->
+  put(Key, Value, 0, none).
+
+%% @spec put(Key, Value, Flags) -> Result
+%% where
+%%       Key    = list()
+%%       Value  = list()
+%%       Flags  = integer()
+%%       Result = boolean()|{error, Reason}
+%% @doc Store ``Value'' while specifying ``Flags'' for ``Key'' returning ``Result''.
+%% @end
+%%
+put(Key, Value, Flags) ->
+  put(Key, Value, Flags, none).
+
+%% @spec put(Key, Value, Flags, CAS) -> Result
+%% where
+%%       Key    = list()
+%%       Value  = list()
+%%       Flags  = integer()
+%%       CAS    = integer()
+%%       Result = boolean()|{error, Reason}
+%% @doc Store ``Value'' while specifying ``Flags'' for ``Key'', using the
+%% Check-and-Set operation, specifying the ``ModifyIndex'' value as ``CAS''
+%% returning ``Result''.
+%% @end
+%%
+put(Key, Value, Flags, CAS) ->
+  Args = case CAS of
+    none -> [{flags, Flags}];
+    _ -> [{flags, Flags}, {cas, CAS}]
+  end,
+  case gen_server:call(conserl, {put, [kv, Key], Value, Args}) of
+    {error, Reason} -> {error, Reason};
+    Response -> list_to_atom(Response)
+  end.
 
 %% @spec watch(Key) -> Result
 %% where
@@ -135,10 +218,10 @@ watch(Key, Fun) ->
 watch(Key, QArgs, Fun) ->
   Reply = fun(Response) ->
     case Response of
+      {error, Reason} -> Fun({error, Reason});
       {Ref, Payload} ->
         [Result] = build_get_response(Payload),
-        Fun({Ref, Result});
-      {error, Reason} -> Fun({error, Reason})
+        Fun({Ref, Result})
     end
   end,
   case get(Key, QArgs) of
@@ -151,6 +234,15 @@ watch(Key, QArgs, Fun) ->
     {error, Response} -> Fun({error, Response})
   end.
 
+%% @private
+%% @spec delete_args(boolean(), integer()) -> list()
+%% @doc Return a list of request args for a delete
+%% @end
+%%
+delete_args(false, none) -> [];
+delete_args(true, none)  -> [recurse];
+delete_args(false, CAS)  -> [{cas, CAS}];
+delete_args(true, CAS)   -> [recurse, {cas, CAS}].
 
 %% @private
 %% @spec build_get_response(list()) -> list()
