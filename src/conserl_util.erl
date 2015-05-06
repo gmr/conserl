@@ -4,6 +4,7 @@
 
 %% API
 -export([get/3,
+         get/4,
          build_url/4,
          build_path/1,
          build_query/1,
@@ -12,22 +13,51 @@
 -include("conserl.hrl").
 
 get(#state{host=Host, port=Port, acl=ACL}, Path, QArgs) when ACL =/= undefined ->
-  get(Host, Port, Path, lists:merge(QArgs, [{acl, ACL}]));
-
+  http_get(Host, Port, Path, lists:merge(QArgs, [{acl, ACL}]), []);
 get(State, Path, QArgs) ->
-  get(State#state.host, State#state.port, Path, QArgs).
+  http_get(State#state.host, State#state.port, Path, QArgs, []).
 
-get(Host, Port, Path, QArgs) ->
+get(State, Path, QArgs, {timeout, Timeout}) ->
+  http_get(State#state.host, State#state.port, Path, QArgs, [{timeout, Timeout}]);
+
+get(State, Path, QArgs, Fun) ->
+  http_get(State#state.host, State#state.port, Path, QArgs, {receiver, Fun}).
+
+http_get(Host, Port, Path, QArgs, {receiver, Fun}) ->
+  Receiver = spawn(fun() ->
+    receive
+      {http, Response} -> Fun(process_response(Response))
+    end
+  end),
   URL = build_url(Host, Port, Path, QArgs),
-  case httpc:request(URL) of
-    {ok, {{_Vsn, 200, _Reason}, _Headers, Body}} ->
-      Decoded = jsx:decode(list_to_binary(Body)),
-      lager:info("Body: ~p", [Decoded]),
-      {ok, Decoded};
-    {error, Reason} ->
-      lager:error("Error querying Consul: ~p", [Reason]),
-      {error, Reason}
+  lager:debug("http_get/5 with callback function: ~s", [URL]),
+  httpc:request(get, {URL, []}, [], [{sync, false},
+                {receiver, Receiver}]);
+
+http_get(Host, Port, Path, QArgs, Options) ->
+  URL = build_url(Host, Port, Path, QArgs),
+  Response = httpc:request(get, {URL, []}, Options, []),
+  case process_response(Response) of
+    {ok, {error, Response}} -> {error, Response};
+    Response -> Response
   end.
+
+process_response({Ref, {{_Vsn, 200, _Reason}, Headers, Body}}) ->
+  ContentType = proplists:get_value("content-type", Headers),
+  case ContentType of
+    "application/json" -> {Ref, json_decode(Body)};
+    _ -> {Ref, Body}
+  end;
+process_response({Ref, {{_Vsn, _, Reason}, _Headers, _Body}}) -> {Ref, {error, Reason}};
+process_response({error, Reason}) -> {error, Reason}.
+
+json_decode(Value) when is_binary(Value) =:= true ->
+  jsx:decode(Value);
+json_decode(Value) when is_list(Value) =:= true ->
+  jsx:decode(list_to_binary(Value));
+json_decode(Value) ->
+  lager:error("Unspported type ~p", [Value]),
+  Value.
 
 build_url(Host, Port, Path, QArgs) ->
   string:join(["http://", Host, ":", integer_to_list(Port), build_full_path(Path, QArgs)], "").

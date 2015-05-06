@@ -1,0 +1,4 @@
+%% encoding: UTF-8
+{application,conserl}.
+{packages,[]}.
+{modules,[conserl,conserl_kv]}.
