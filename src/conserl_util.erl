@@ -19,12 +19,9 @@ delete(State, Path, QArgs) when State#state.acl =/= undefined ->
   delete(State, Path, lists:merge(QArgs, [{acl, State#state.acl}]));
 delete(#state{host=Host, port=Port}, Path, QArgs) ->
   URL = build_url(Host, Port, Path, QArgs),
-  lager:info("URL: ~s", [URL]),
   case httpc:request(delete, {URL, []}, [], []) of
     {ok, {{_Vsn, 200, _Reason}, _Headers, Body}} -> Body;
-    {ok, {{_Vsn, StatusCode, Reason}, _Headers, _Body}} ->
-      lager:info("Status Code: ~p", [StatusCode]),
-      {error, Reason};
+    {ok, {{_Vsn, _StatusCode, Reason}, _Headers, _Body}} -> {error, Reason};
     {error, Reason} -> {error, Reason}
   end.
 
@@ -78,7 +75,6 @@ json_decode(Value) when is_binary(Value) =:= true ->
 json_decode(Value) when is_list(Value) =:= true ->
   jsx:decode(list_to_binary(Value));
 json_decode(Value) ->
-  lager:error("Unspported type ~p", [Value]),
   Value.
 
 build_url(Host, Port, Path, QArgs) ->
