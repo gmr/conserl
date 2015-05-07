@@ -1,13 +1,22 @@
-%%% @author Gavin M. Roy <gavinmroy@gmail.com>
 %%% @doc Consul Catalog API endpoints
 
 -module(conserl_catalog).
 
 -export([nodes/0, nodes/1, services/0, services/1]).
 
+%% @spec nodes() -> list()
+%% @doc Return nodes as a list
+%% @end
+%%
 nodes() ->
   conserl_catalog:nodes(none).
 
+%% @spec nodes(DC) -> list()
+%% where
+%%       DC = list()
+%% @doc Return nodes as a list
+%% @end
+%%
 nodes(DC) ->
   Args = case DC of
     none -> [];
@@ -18,9 +27,19 @@ nodes(DC) ->
     Other -> Other
   end.
 
+%% @spec services() -> list()
+%% @doc Return services as a list
+%% @end
+%%
 services() ->
   services(none).
 
+%% @spec services(DC) -> list()
+%% where
+%%       DC = list()
+%% @doc Return services as a proplist of service name a list of nodes
+%% @end
+%%
 services(DC) ->
   Args = case DC of
     none -> [];

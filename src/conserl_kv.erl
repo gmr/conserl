@@ -1,4 +1,3 @@
-%%% @author Gavin M. Roy <gavinmroy@gmail.com>
 %%% @doc Consul KV API endpoints
 
 -module(conserl_kv).

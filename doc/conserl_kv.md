@@ -7,7 +7,7 @@
 
 
 Consul KV API endpoints.
-__Authors:__ Gavin M. Roy ([`gavinmroy@gmail.com`](mailto:gavinmroy@gmail.com)).
+
 <a name="index"></a>
 
 ## Function Index ##
