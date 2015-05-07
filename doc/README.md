@@ -4,6 +4,8 @@
 
 An Erlang client library for [Consul](http://consul.io).
 
+[![Build Status](https://travis-ci.org/gmr/conserl.svg?branch=master)](https://travis-ci.org/gmr/conserl)
+
 
 ## Requirements ##
 
