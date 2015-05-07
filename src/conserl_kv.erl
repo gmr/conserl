@@ -14,9 +14,9 @@
 %%
 %% *Example*:
 %%
-%% ```
+%% <pre lang="erlang">
 %% ok = conserl_kv:delete("key").
-%% '''
+%% </pre>
 %% @end
 delete(Key) ->
   delete(Key, false, none).
@@ -27,24 +27,24 @@ delete(Key) ->
 %%
 %% *Example*:
 %%
-%% ```
+%% <pre lang="erlang">
 %% ok = conserl_kv:delete("foo/bar/", true).
-%% '''
+%% </pre>
 %% @end
 delete(Key, Recurse) ->
   delete(Key, Recurse, none).
 
 -spec delete(Key :: list(), Recurse :: boolean(), CAS :: integer()) -> ok | {error, list()}.
 %% @doc Delete the given ``Key'' using Check-and-Set operations specifying the
-%% ``ModifyIndex'' using the ``CAS'' argument, returning ``Result''. If ``Recurse``
+%% ``ModifyIndex'' using the ``CAS'' argument, returning ``Result''. If ``Recurse''
 %% is set ``true'', delete all keys under ``Key'' as a prefix.
 %%
 %% *Example*:
 %%
-%% ```
+%% <pre lang="erlang">
 %% Value = conserl_kv:get("maintenance"),
 %% ok = conserl_kv:delete("maintenance", false, maps:get(modify_index, Value).
-%% '''
+%% </pre>
 %% @end
 delete(Key, Recurse, CAS) ->
   case gen_server:call(conserl, {delete, [kv, Key], delete_args(Recurse, CAS)}) of

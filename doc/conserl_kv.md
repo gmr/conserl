@@ -48,7 +48,8 @@ Delete the specified key from the Consul KV database.
 
 
 
-```
+```erlang
+
   ok = conserl_kv:delete("key").
 ```
 
@@ -72,7 +73,8 @@ is `true`, otherwise delete the key matching the `Key` value.
 
 
 
-```
+```erlang
+
   ok = conserl_kv:delete("foo/bar/", true).
 ```
 
@@ -88,8 +90,8 @@ delete(Key::list(), Recurse::boolean(), CAS::integer()) -&gt; ok | {error, list(
 
 
 Delete the given `Key` using Check-and-Set operations specifying the
-`ModifyIndex` using the `CAS` argument, returning `Result`. If `Recurse``
-is set ``true`, delete all keys under `Key` as a prefix.
+`ModifyIndex` using the `CAS` argument, returning `Result`. If `Recurse`
+is set `true`, delete all keys under `Key` as a prefix.
 
 
 
@@ -97,7 +99,8 @@ is set ``true`, delete all keys under `Key` as a prefix.
 
 
 
-```
+```erlang
+
   Value = conserl_kv:get("maintenance"),
   ok = conserl_kv:delete("maintenance", false, maps:get(modify_index, Value).
 ```
