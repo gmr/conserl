@@ -2,12 +2,32 @@
 
 # Module conserl_kv #
 * [Description](#description)
+* [Data Types](#types)
 * [Function Index](#index)
 * [Function Details](#functions)
 
 
 Consul KV API endpoints.
 
+
+<a name="types"></a>
+
+## Data Types ##
+
+
+
+
+### <a name="type-error">error()</a> ###
+
+
+
+<pre><code>
+error() = {error, Reason::list()}
+</code></pre>
+
+
+
+  Returned when an operation fails.
 <a name="index"></a>
 
 ## Function Index ##
@@ -15,7 +35,7 @@ Consul KV API endpoints.
 
 <table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#delete-1">delete/1</a></td><td>Delete the specified key from the Consul KV database.</td></tr><tr><td valign="top"><a href="#delete-2">delete/2</a></td><td>Recursively delete all keys under <code>Key</code> as a prefix when <code>Recurse</code>
 is <code>true</code>, otherwise delete the key matching the <code>Key</code> value.</td></tr><tr><td valign="top"><a href="#delete-3">delete/3</a></td><td>Delete the given <code>Key</code> using Check-and-Set operations specifying the
-<code>ModifyIndex</code> using the <code>CAS</code> argument, returning <code>Result</code>.</td></tr><tr><td valign="top"><a href="#get-1">get/1</a></td><td>Return <code>Result</code> value for the given key.</td></tr><tr><td valign="top"><a href="#get-2">get/2</a></td><td>Return <code>Result</code> for the given <code>Key</code> and specified query args (<code>QArgs</code>)
+<code>ModifyIndex</code> using the <code>CAS</code> argument, returning <code>Result</code>.</td></tr><tr><td valign="top"><a href="#get-1">get/1</a></td><td>Get the value and metadata for a given <code>Key</code> from the KV database.</td></tr><tr><td valign="top"><a href="#get-2">get/2</a></td><td>Return <code>Result</code> for the given <code>Key</code> and specified query args (<code>QArgs</code>)
 such as <code>{"dc", "production"}</code>.</td></tr><tr><td valign="top"><a href="#get_all-1">get_all/1</a></td><td>Return the values for all keys with the supplied <code>Prefix</code>.</td></tr><tr><td valign="top"><a href="#get_all-2">get_all/2</a></td><td>Return the values for all keys with the supplied <code>Prefix</code> passing in
 aditional query arguments (<code>QArgs</code>), such as <code>{"dc", "production"}</code>.</td></tr><tr><td valign="top"><a href="#keys-1">keys/1</a></td><td>List all keys under the given <code>Prefix</code>.</td></tr><tr><td valign="top"><a href="#keys-2">keys/2</a></td><td>List keys for the prefix.</td></tr><tr><td valign="top"><a href="#put-2">put/2</a></td><td>Store <code>Value</code> for <code>Key</code> returning <code>Result</code>.</td></tr><tr><td valign="top"><a href="#put-3">put/3</a></td><td>Store <code>Value</code> while specifying <code>Flags</code> for <code>Key</code> returning <code>Result</code>.</td></tr><tr><td valign="top"><a href="#put-4">put/4</a></td><td>Store <code>Value</code> while specifying <code>Flags</code> for <code>Key</code>, using the
 Check-and-Set operation, specifying the <code>ModifyIndex</code> value as <code>CAS</code>
@@ -35,7 +55,7 @@ arguments (<code>QArgs</code>), such as <code>{"dc", "production"}</code>.</td><
 
 
 <pre><code>
-delete(Key::list()) -&gt; ok | {error, list()}
+delete(Key::list()) -&gt; ok | <a href="#type-error">error()</a>
 </code></pre>
 <br />
 
@@ -59,7 +79,7 @@ Delete the specified key from the Consul KV database.
 
 
 <pre><code>
-delete(Key::list(), Recurse::boolean()) -&gt; ok | {error, list()}
+delete(Key::list(), Recurse::boolean()) -&gt; ok | <a href="#type-error">error()</a>
 </code></pre>
 <br />
 
@@ -84,7 +104,7 @@ is `true`, otherwise delete the key matching the `Key` value.
 
 
 <pre><code>
-delete(Key::list(), Recurse::boolean(), CAS::integer()) -&gt; ok | {error, list()}
+delete(Key::list(), Recurse::boolean(), CAS::integer() | none) -&gt; ok | <a href="#type-error">error()</a>
 </code></pre>
 <br />
 
@@ -111,12 +131,30 @@ is set `true`, delete all keys under `Key` as a prefix.
 
 
 <pre><code>
-get(Key) -&gt; Result
+get(Key::list()) -&gt; {ok, Result::#{}} | <a href="#type-error">error()</a>
 </code></pre>
+<br />
 
-<ul class="definitions"><li><code>Prefix = list()</code></li><li><code>Result = {ok, map()} | {error, Reason}</code></li></ul>
 
-Return `Result` value for the given key.
+Get the value and metadata for a given `Key` from the KV database.
+
+
+
+*Example*:
+
+
+
+```erlang
+
+  conserl_kv:get("foo").
+  {ok,#{create_index => 557,
+        flags => 0,
+        key => "foo",
+        lock_index => 0,
+        modify_index => 557,
+        value => "bar"}}
+```
+
 <a name="get-2"></a>
 
 ### get/2 ###

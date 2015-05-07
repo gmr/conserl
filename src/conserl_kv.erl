@@ -9,7 +9,9 @@
          put/2, put/3, put/4,
          watch/1, watch/2, watch/3]).
 
--spec delete(Key :: list()) -> ok | {error, list()}.
+-type error() :: {error, Reason :: list()}.  %% Returned when an operation fails.
+
+-spec delete(Key :: list()) -> ok | error().
 %% @doc Delete the specified key from the Consul KV database.
 %%
 %% *Example*:
@@ -21,7 +23,7 @@
 delete(Key) ->
   delete(Key, false, none).
 
--spec delete(Key :: list(), Recurse :: boolean()) -> ok | {error, list()}.
+-spec delete(Key :: list(), Recurse :: boolean()) -> ok | error().
 %% @doc Recursively delete all keys under ``Key'' as a prefix when ``Recurse''
 %% is ``true'', otherwise delete the key matching the ``Key'' value.
 %%
@@ -34,7 +36,7 @@ delete(Key) ->
 delete(Key, Recurse) ->
   delete(Key, Recurse, none).
 
--spec delete(Key :: list(), Recurse :: boolean(), CAS :: integer()) -> ok | {error, list()}.
+-spec delete(Key :: list(), Recurse :: boolean(), CAS :: integer() | none) -> ok | error().
 %% @doc Delete the given ``Key'' using Check-and-Set operations specifying the
 %% ``ModifyIndex'' using the ``CAS'' argument, returning ``Result''. If ``Recurse''
 %% is set ``true'', delete all keys under ``Key'' as a prefix.
@@ -52,13 +54,21 @@ delete(Key, Recurse, CAS) ->
     _ -> ok
   end.
 
-%% @spec get(Key) -> Result
-%% where
-%%       Prefix    = list()
-%%       Result = {ok, map()}|{error, Reason}
-%% @doc Return ``Result'' value for the given key.
-%% @end
+-spec get(Key :: list()) -> {ok, Result :: map()} | error().
+%% @doc Get the value and metadata for a given ``Key'' from the KV database.
 %%
+%% *Example*:
+%%
+%% <pre lang="erlang">
+%% conserl_kv:get("foo").
+%% {ok,#{create_index => 557,
+%%       flags => 0,
+%%       key => "foo",
+%%       lock_index => 0,
+%%       modify_index => 557,
+%%       value => "bar"}}
+%% </pre>
+%% @end
 get(Key) ->
   get(Key, []).
 
@@ -235,10 +245,8 @@ watch(Key, QArgs, Fun) ->
   end.
 
 %% @private
-%% @spec delete_args(boolean(), integer()) -> list()
+-spec delete_args(boolean(), none | integer()) -> list().
 %% @doc Return a list of request args for a delete
-%% @end
-%%
 delete_args(false, none) -> [];
 delete_args(true, none)  -> [recurse];
 delete_args(false, CAS)  -> [{cas, CAS}];
