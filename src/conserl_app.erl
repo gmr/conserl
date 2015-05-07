@@ -7,7 +7,7 @@
          stop/1
         ]).
 
--spec start(term(), term()) -> ok.
+-spec start(term(), term()) -> {error,_} | {ok,pid()} | {ok,pid(),_}.
 start(_StartType, _StartArgs) ->
     conserl_sup:start_link().
 
