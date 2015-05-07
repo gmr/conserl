@@ -20,7 +20,7 @@ start() ->
     {ok, _} = application:ensure_all_started(conserl).
 
 %% @doc Start the application
--spec start(atom(), term()) -> {ok, [atom()]}.
+-spec start(atom(), term()) -> {'ok', pid()} | 'ignore' | {'error', term()}.
 start(_Type, _Args) ->
   conserl_sup:start_link().
 
@@ -34,7 +34,9 @@ start_link() ->
   gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 %% @private
--spec init([term()]) -> term().
+-spec init([term()]) ->
+  {ok, State :: term()} | {ok, State :: term(), timeout() | hibernate} |
+  {stop, Reason :: term()} | ignore.
 init([]) ->
   {ok, Host} = application:get_env(conserl, hostname),
   {ok, Port} = application:get_env(conserl, port),
