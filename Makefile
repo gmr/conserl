@@ -26,7 +26,7 @@ deps:
 dialyze:
 	@dialyzer ebin/*.beam --plt ~/.$(PROJECT).plt -I include
 
-doc:
+doc: compile
 	@echo "Running rebar doc..."
 	@$(REBAR) skip_deps=true doc
 
