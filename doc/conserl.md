@@ -41,7 +41,7 @@ Start the application
 
 
 <pre><code>
-start(Type::atom(), Args::term()) -&gt; {ok, [atom()]}
+start(Type::atom(), Args::term()) -&gt; {ok, pid()} | ignore | {error, term()}
 </code></pre>
 <br />
 

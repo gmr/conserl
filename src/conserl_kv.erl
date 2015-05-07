@@ -9,37 +9,43 @@
          put/2, put/3, put/4,
          watch/1, watch/2, watch/3]).
 
-%% @spec delete(Key) -> Result
-%% where
-%%       Key    = list()
-%%       Result = ok|{error, Reason}
-%% @doc Delete the give ``Key'' returning ``Result''.
-%% @end
+-spec delete(Key :: list()) -> ok | {error, list()}.
+%% @doc Delete the specified key from the Consul KV database.
 %%
+%% *Example*:
+%%
+%% ```
+%% ok = conserl_kv:delete("key").
+%% '''
+%% @end
 delete(Key) ->
   delete(Key, false, none).
 
-%% @spec delete(Prefix, Recurse) -> Result
-%% where
-%%       Prefix  = list()
-%%       Recurse = boolean()
-%%       Result  = ok|{error, Reason}
-%% @doc Recursively delete all keys matching ``Prefix'' returning ``Result''.
-%% @end
+-spec delete(Key :: list(), Recurse :: boolean()) -> ok | {error, list()}.
+%% @doc Recursively delete all keys under ``Key'' as a prefix when ``Recurse''
+%% is ``true'', otherwise delete the key matching the ``Key'' value.
 %%
-delete(Prefix, Recurse) ->
-  delete(Prefix, Recurse, none).
+%% *Example*:
+%%
+%% ```
+%% ok = conserl_kv:delete("foo/bar/", true).
+%% '''
+%% @end
+delete(Key, Recurse) ->
+  delete(Key, Recurse, none).
 
-%% @spec delete(Key, Recurse, CAS) -> Result
-%% where
-%%       Key     = list()
-%%       Recurse = boolean()
-%%       CAS     = boolean()
-%%       Result  = ok|{error, Reason}
+-spec delete(Key :: list(), Recurse :: boolean(), CAS :: integer()) -> ok | {error, list()}.
 %% @doc Delete the given ``Key'' using Check-and-Set operations specifying the
-%% ``ModifyIndex'' using the ``CAS'' argument, returning ``Result''.
-%% @end
+%% ``ModifyIndex'' using the ``CAS'' argument, returning ``Result''. If ``Recurse``
+%% is set ``true'', delete all keys under ``Key'' as a prefix.
 %%
+%% *Example*:
+%%
+%% ```
+%% Value = conserl_kv:get("maintenance"),
+%% ok = conserl_kv:delete("maintenance", false, maps:get(modify_index, Value).
+%% '''
+%% @end
 delete(Key, Recurse, CAS) ->
   case gen_server:call(conserl, {delete, [kv, Key], delete_args(Recurse, CAS)}) of
     {error, Reason} -> {error, Reason};
@@ -137,12 +143,7 @@ keys(Prefix, QArgs) ->
 put(Key, Value) ->
   put(Key, Value, 0, none).
 
-%% @spec put(Key, Value, Flags) -> Result
-%% where
-%%       Key    = list()
-%%       Value  = list()
-%%       Flags  = integer()
-%%       Result = boolean()|{error, Reason}
+-spec put(Key :: list(), Value :: list(), Flags :: integer()) -> boolean() | {error, list()}.
 %% @doc Store ``Value'' while specifying ``Flags'' for ``Key'' returning ``Result''.
 %% @end
 %%

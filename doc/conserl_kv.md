@@ -13,7 +13,8 @@ Consul KV API endpoints.
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#delete-1">delete/1</a></td><td>Delete the give <code>Key</code> returning <code>Result</code>.</td></tr><tr><td valign="top"><a href="#delete-2">delete/2</a></td><td>Recursively delete all keys matching <code>Prefix</code> returning <code>Result</code>.</td></tr><tr><td valign="top"><a href="#delete-3">delete/3</a></td><td>Delete the given <code>Key</code> using Check-and-Set operations specifying the
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#delete-1">delete/1</a></td><td>Delete the specified key from the Consul KV database.</td></tr><tr><td valign="top"><a href="#delete-2">delete/2</a></td><td>Recursively delete all keys under <code>Key</code> as a prefix when <code>Recurse</code>
+is <code>true</code>, otherwise delete the key matching the <code>Key</code> value.</td></tr><tr><td valign="top"><a href="#delete-3">delete/3</a></td><td>Delete the given <code>Key</code> using Check-and-Set operations specifying the
 <code>ModifyIndex</code> using the <code>CAS</code> argument, returning <code>Result</code>.</td></tr><tr><td valign="top"><a href="#get-1">get/1</a></td><td>Return <code>Result</code> value for the given key.</td></tr><tr><td valign="top"><a href="#get-2">get/2</a></td><td>Return <code>Result</code> for the given <code>Key</code> and specified query args (<code>QArgs</code>)
 such as <code>{"dc", "production"}</code>.</td></tr><tr><td valign="top"><a href="#get_all-1">get_all/1</a></td><td>Return the values for all keys with the supplied <code>Prefix</code>.</td></tr><tr><td valign="top"><a href="#get_all-2">get_all/2</a></td><td>Return the values for all keys with the supplied <code>Prefix</code> passing in
 aditional query arguments (<code>QArgs</code>), such as <code>{"dc", "production"}</code>.</td></tr><tr><td valign="top"><a href="#keys-1">keys/1</a></td><td>List all keys under the given <code>Prefix</code>.</td></tr><tr><td valign="top"><a href="#keys-2">keys/2</a></td><td>List keys for the prefix.</td></tr><tr><td valign="top"><a href="#put-2">put/2</a></td><td>Store <code>Value</code> for <code>Key</code> returning <code>Result</code>.</td></tr><tr><td valign="top"><a href="#put-3">put/3</a></td><td>Store <code>Value</code> while specifying <code>Flags</code> for <code>Key</code> returning <code>Result</code>.</td></tr><tr><td valign="top"><a href="#put-4">put/4</a></td><td>Store <code>Value</code> while specifying <code>Flags</code> for <code>Key</code>, using the
@@ -34,37 +35,73 @@ arguments (<code>QArgs</code>), such as <code>{"dc", "production"}</code>.</td><
 
 
 <pre><code>
-delete(Key) -&gt; Result
+delete(Key::list()) -&gt; ok | {error, list()}
 </code></pre>
+<br />
 
-<ul class="definitions"><li><code>Key = list()</code></li><li><code>Result = ok | {error, Reason}</code></li></ul>
 
-Delete the give `Key` returning `Result`.
+Delete the specified key from the Consul KV database.
+
+
+
+*Example*:
+
+
+
+```
+  ok = conserl_kv:delete("key").
+```
+
 <a name="delete-2"></a>
 
 ### delete/2 ###
 
 
 <pre><code>
-delete(Prefix, Recurse) -&gt; Result
+delete(Key::list(), Recurse::boolean()) -&gt; ok | {error, list()}
 </code></pre>
+<br />
 
-<ul class="definitions"><li><code>Prefix = list()</code></li><li><code>Recurse = boolean()</code></li><li><code>Result = ok | {error, Reason}</code></li></ul>
 
-Recursively delete all keys matching `Prefix` returning `Result`.
+Recursively delete all keys under `Key` as a prefix when `Recurse`
+is `true`, otherwise delete the key matching the `Key` value.
+
+
+
+*Example*:
+
+
+
+```
+  ok = conserl_kv:delete("foo/bar/", true).
+```
+
 <a name="delete-3"></a>
 
 ### delete/3 ###
 
 
 <pre><code>
-delete(Key, Recurse, CAS) -&gt; Result
+delete(Key::list(), Recurse::boolean(), CAS::integer()) -&gt; ok | {error, list()}
 </code></pre>
+<br />
 
-<ul class="definitions"><li><code>Key = list()</code></li><li><code>Recurse = boolean()</code></li><li><code>CAS = boolean()</code></li><li><code>Result = ok | {error, Reason}</code></li></ul>
 
 Delete the given `Key` using Check-and-Set operations specifying the
-`ModifyIndex` using the `CAS` argument, returning `Result`.
+`ModifyIndex` using the `CAS` argument, returning `Result`. If `Recurse``
+is set ``true`, delete all keys under `Key` as a prefix.
+
+
+
+*Example*:
+
+
+
+```
+  Value = conserl_kv:get("maintenance"),
+  ok = conserl_kv:delete("maintenance", false, maps:get(modify_index, Value).
+```
+
 <a name="get-1"></a>
 
 ### get/1 ###
@@ -159,10 +196,9 @@ Store `Value` for `Key` returning `Result`.
 
 
 <pre><code>
-put(Key, Value, Flags) -&gt; Result
+put(Key::list(), Value::list(), Flags::integer()) -&gt; boolean() | {error, list()}
 </code></pre>
-
-<ul class="definitions"><li><code>Key = list()</code></li><li><code>Value = list()</code></li><li><code>Flags = integer()</code></li><li><code>Result = boolean() | {error, Reason}</code></li></ul>
+<br />
 
 Store `Value` while specifying `Flags` for `Key` returning `Result`.
 <a name="put-4"></a>
