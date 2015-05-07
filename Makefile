@@ -1,11 +1,15 @@
-PROJECT=awerl
+PROJECT=conserl
 REBAR=./rebar
 
 all: compile
 
 build-plt: all
 	@dialyzer --build_plt --output_plt ~/.$(PROJECT).plt \
-		--apps kernel stdlib inets
+		--apps kernel stdlib sasl erts ssl \
+				tools os_mon runtime_tools crypto \
+				inets xmerl webtool snmp public_key \
+				mnesia syntax_tools compiler \
+				./deps/*/ebin
 
 check-plt:
 	@dialyzer --check_plt --plt ~/.$(PROJECT).plt
